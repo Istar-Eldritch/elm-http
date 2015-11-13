@@ -2,7 +2,7 @@ module Http
     ( getString, get, post, send
     , url, uriEncode, uriDecode
     , Request
-    , Body, empty, string, multipart
+    , Body, empty, string, multipart, formUrlEncoded
     , Data, stringData
     , Settings, defaultSettings
     , Response, Value(..)
@@ -59,7 +59,12 @@ url baseUrl args =
         baseUrl
 
     _ ->
-        baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
+        baseUrl ++ "?" ++ joinArgs args
+
+
+joinArgs: List (String, String) -> String
+joinArgs args =
+  String.join "&" (List.map queryPair args)
 
 
 queryPair : (String,String) -> String
@@ -145,6 +150,25 @@ JSON data to a server that does not belong in the URL.
 string : String -> Body
 string =
   BodyString
+
+
+{-| Provides a x-www-form-urlencoded string as the body of the request
+
+    formUrlEncodedPost : String -> List (String, String) -> Task RawError Response
+    formUrlEncodedPost url args =
+      send defaultSettings
+        { verb = "POST"
+        , headers = [ ("Content-Type", "application/x-www-form-urlencoded") ]
+        , url = url
+        , body = formUrlEncoded args
+        }
+
+-}
+formUrlEncoded: List (String, String) -> Body
+formUrlEncoded args =
+  args
+    |> joinArgs
+    |> string
 
 
 {--
